@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy as np
+import sys
 from array import array
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
@@ -91,7 +92,7 @@ N_A=n_A.integral(-lim,lim,-lim,lim)
 N_B=n_B.integral(-lim,lim,-lim,lim)
 
 #choose number of events to generate
-nev=int(999999)
+nev=int(1000000)
 
 #matrix where we store observables, listed below.
 obs=np.zeros((nev,12))
@@ -116,6 +117,7 @@ obs=np.zeros((nev,12))
 ##############################
 
 rho_dict = {}
+
 ev=0
 for ev in range(nev):
     print(ev)
@@ -311,8 +313,14 @@ for ev in range(nev):
 
     # obs[ev,3] = rho
 
-    # Adding list as value 
-    rho_dict[ev] = rho
+    # Only need to add rhos above 100,000 a.u. for cutoff. Later we can retrieve them. Otherwise the dictionary will be too big 
+    #and will take up too much memory while running the program.
+
+    if np.sum(rho) >= 100000:
+        rho_dict[ev] = rho
+
+    else: 
+        rho_dict[ev] = 0
 
 ###############################################################################
 ####     CALCULATE "OBSERVABLES". With the energy density, we can move on #####

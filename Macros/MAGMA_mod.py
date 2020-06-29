@@ -91,7 +91,7 @@ N_A=n_A.integral(-lim,lim,-lim,lim)
 N_B=n_B.integral(-lim,lim,-lim,lim)
 
 #choose number of events to generate
-nev=int(999999)
+nev=int(1000000)
 
 #matrix where we store observables, listed below.
 obs=np.zeros((nev,12))
@@ -115,10 +115,8 @@ obs=np.zeros((nev,12))
 ##############################
 ##############################
 
-rho_dict = {}
 ev=0
 for ev in range(nev):
-    print(ev)
     obs[ev,0] = ev
     #Now generate coordinates of the sources.
     #Number of sources A from Poisson distribution.
@@ -311,9 +309,14 @@ for ev in range(nev):
 
     # obs[ev,3] = rho
 
-    # Adding list as value 
-    rho_dict[ev] = rho_mod
+    # Only need to add rhos above 100,000 a.u. for cutoff. Later we can retrieve them. Otherwise the dictionary will be too big 
+    #and will take up too much memory while running the program.
 
+    # if np.sum(rho_mod) >= 10000:
+    #     rho_dict[ev] = rho_mod
+
+    # else: 
+    #     rho_dict[ev] = 0
 ###############################################################################
 ####     CALCULATE "OBSERVABLES". With the energy density, we can move on #####
 ####     to the calculation of eccentricities, rms size, total energy.    #####
@@ -559,54 +562,54 @@ gr_v3_over_v2_ratio_mod.Write('v3_over_v2_MAGMA_mod')
 hist_e_tot.Write('Energy_Distribution_MAGMA_mod')
 
 
-##############################################################################
-########     TH2D Plots for SONIC Hydrodynamic calculations            #######
-##############################################################################
+# ##############################################################################
+# ########     TH2D Plots for SONIC Hydrodynamic calculations            #######
+# ##############################################################################
 
-#SONIC plots are only for hydrodynamics within 0-1% centrality range.
+# #SONIC plots are only for hydrodynamics within 0-1% centrality range.
 
-ev_ctr =0
-Rho_MAGMA_for_SONIC = ROOT.TFile.Open('Rho_MAGMA_for_SONIC_mod.root', 'RECREATE')
+# ev_ctr =0
+# Rho_MAGMA_for_SONIC = ROOT.TFile.Open('Rho_MAGMA_for_SONIC_mod.root', 'RECREATE')
 
-file_ctr = 0
+# file_ctr = 0
 
-for e_tot in obs[:,4]:
+# for e_tot in obs[:,4]:
 
-	#Only want to create 100 files
+# 	#Only want to create 100 files
 
-	if file_ctr >= 100:
-		break
+# 	if file_ctr >= 100:
+# 		break
 
-	else:
+# 	else:
 
-		if centrality_array[0] >= e_tot >= centrality_array[1]:
-			rho_for_SONIC = rho_dict[ev_ctr]
-			b_for_SONIC = obs[ev_ctr , 10]
+# 		if centrality_array[0] >= e_tot >= centrality_array[1]:
+# 			rho_for_SONIC = rho_dict[ev_ctr]
+# 			b_for_SONIC = obs[ev_ctr , 10]
 
-			c = TCanvas("Canvas_" + str(ev_ctr),"Canvas_" + str(ev_ctr),500,500)
-			gr_dens_rho = TH2D("Rho_orig_Ev_" + str(ev_ctr),"Rho = A #times B, Total Energy = " + str(round(e_tot,0)) + ", b = " + str(round(b_for_SONIC, 1)) + "fm;""x [fm];""y f[m];"" [GeV*fm^-3]", size, -14, 14, size, -14, 14)
+# 			c = TCanvas("Canvas_" + str(ev_ctr),"Canvas_" + str(ev_ctr),500,500)
+# 			gr_dens_rho = TH2D("Rho_orig_Ev_" + str(ev_ctr),"Rho = A #times B, Total Energy = " + str(round(e_tot,0)) + ", b = " + str(round(b_for_SONIC, 1)) + "fm;""x [fm];""y f[m];"" [GeV*fm^-3]", size, -14, 14, size, -14, 14)
 
-			#Assign rho to each bin on the TH2D
+# 			#Assign rho to each bin on the TH2D
 
-			for i in range(0,size):
-				for j in range(0, size):
-					if rho_for_SONIC[i,j] <= 1E-7:
-						gr_dens_rho.SetBinContent(j + 1, size - i + 1, 1E-7)
-					else:
-						gr_dens_rho.SetBinContent(j + 1, size - i + 1, rho_for_SONIC[i, j])
+# 			for i in range(0,size):
+# 				for j in range(0, size):
+# 					if rho_for_SONIC[i,j] <= 1E-7:
+# 						gr_dens_rho.SetBinContent(j + 1, size - i + 1, 1E-7)
+# 					else:
+# 						gr_dens_rho.SetBinContent(j + 1, size - i + 1, rho_for_SONIC[i, j])
 
-			gr_dens_rho.GetXaxis().SetRangeUser(-14, 14)
-			gr_dens_rho.GetYaxis().SetRangeUser(-14, 14)
-			gr_dens_rho.SetStats(0)
-			gStyle.SetPalette(55)
-			gr_dens_rho.Draw("COLZ")
+# 			gr_dens_rho.GetXaxis().SetRangeUser(-14, 14)
+# 			gr_dens_rho.GetYaxis().SetRangeUser(-14, 14)
+# 			gr_dens_rho.SetStats(0)
+# 			gStyle.SetPalette(55)
+# 			gr_dens_rho.Draw("COLZ")
 
-			gr_dens_rho.Write("Rho_MAGMA_mod_TH2D_Event_" + str(ev_ctr))
+# 			gr_dens_rho.Write("Rho_MAGMA_mod_TH2D_Event_" + str(ev_ctr))
 
-			ev_ctr += 1
-			file_ctr +=1
-		else: 
-			ev_ctr += 1
+# 			ev_ctr += 1
+# 			file_ctr +=1
+# 		else: 
+# 			ev_ctr += 1
 ##############################################################################
 
 #End of program
