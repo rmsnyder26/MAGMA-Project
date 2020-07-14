@@ -225,8 +225,8 @@ for ev in range(nev):
     #Energy density profiles for A and B.
     rho_A=np.zeros((size,size))
     rho_B=np.zeros((size,size))
-    # rho_A_mod=np.zeros((size,size))
-    # rho_B_mod=np.zeros((size,size))
+    rho_A_mod=np.zeros((size,size))
+    rho_B_mod=np.zeros((size,size))
 
     #Optimized algorithm to evaluate sources on the grid.
     #Loop over sources in A.
@@ -256,7 +256,7 @@ for ev in range(nev):
         ## Revised magma code where it is only dependent on product of sources ##
         ##########################################################################
 
-        # rho_A_mod[indic_x,indic_y]+=8/g**2/Nc/(x_loop[indic_x,indic_y]**2+y_loop[indic_x,indic_y]**2+1/Q2_A.ev(x_Aj+b/2,y_Aj)) #fm^-4
+        rho_A_mod[indic_x,indic_y]+=8/g**2/Nc/(x_loop[indic_x,indic_y]**2+y_loop[indic_x,indic_y]**2+1/Q2_A.ev(x_Aj+b/2,y_Aj)) #fm^-4
 
     #Optimized algorithm to evaluate sources on the grid.
     #Loop over sources in B.
@@ -285,13 +285,11 @@ for ev in range(nev):
         ## Revised magma code where it is only dependent on product of sources ##
         ##########################################################################
 
-        # rho_B_mod[indic_x,indic_y]+=8/g**2/Nc/(x_loop[indic_x,indic_y]**2+y_loop[indic_x,indic_y]**2+1/Q2_B.ev(x_Bj-b/2,y_Bj))
+        rho_B_mod[indic_x,indic_y]+=8/g**2/Nc/(x_loop[indic_x,indic_y]**2+y_loop[indic_x,indic_y]**2+1/Q2_B.ev(x_Bj-b/2,y_Bj))
 
     #Compute total energy density profile.
     rho = (rho_A + rho_B)/conv #Gev/fm^3
-    # rho_mod = rho_A_mod*rho_B_mod/conv #Gev
-    
-    #np.savetxt("Rho.csv", rho, delimiter = ",")
+    rho_mod = rho_A_mod*rho_B_mod/conv #Gev
 
 ##################################################
 ############### graphic check ####################
@@ -344,13 +342,12 @@ for ev in range(nev):
     a2=R_B     #radius on the x-axis
     b2=R_B   #radius on the y-axis
 
-#Draw A_WS x B + A * B_WS. 5 plots in total
+#Draw A_WS x B + A * B_WS. 6 plots in total
+
     c = TCanvas('c','c',725,275)
 
     c.SetRightMargin(c.GetRightMargin()/2);
-    # c2.SetTopMargin(c2.GetTopMargin()*2);
 
-    #Pad 1 for sources A
     pad1 = TPad("pad1","",0.02, .45, .197, .9, 0, 4, 0)
 
     pad2 = TPad("pad2","",0.02, 0, 0.197, .45, 0)
@@ -359,13 +356,16 @@ for ev in range(nev):
 
     pad4 = TPad("pad4","",0.255, 0, 0.43, 0.45, 0)
 
-    pad5 = TPad("pad5","",0.518, 0, 0.917, 1, 0)
+    pad5 = TPad("pad5","",0.52, 0.45, 0.715, .9, 0)
+
+    pad6 = TPad("pad6","",0.52, 0, 0.715, .45, 0)
 
     pad1.Draw()
     pad2.Draw()
     pad3.Draw()
     pad4.Draw()
     pad5.Draw()
+    pad6.Draw()
 
     plus_sign = TLatex()
     plus_sign.SetTextSize(0.15)
@@ -391,7 +391,38 @@ for ev in range(nev):
     B_text.SetTextSize(0.075)
     B_text.DrawLatex(.34,.43,"#font[12]{B}")
 
+    MAGMA_text = TLatex()
+    MAGMA_text.SetTextSize(0.075)
+    MAGMA_text.DrawLatex(.51,.88,"#font[12]{A #times B_{WS} + A_{WS} #times B}")
 
+    MAGMA_mod_text = TLatex()
+    MAGMA_mod_text.SetTextSize(0.075)
+    MAGMA_mod_text.DrawLatex(.575,.43,"#font[12]{A #times B}")
+
+    t = np.linspace(0,2*np.pi,100)
+    x_circle = np.zeros(100)
+    y_circle = np.zeros(100)
+    for i in range(0,100):
+        x_circle[i] = a1*np.cos(t[i])
+        y_circle[i] = b1*np.sin(t[i])
+        i+=1
+
+#For setting up a color table that can make hotspots brighter 
+
+    NRGBs = 5
+    NCont = 255
+    stops = [0.00, 0.10, 0.40, 0.70, 1.00]
+    red =   [0.00, 0.00, 0.87, 1.00, 0.51]
+    green = [0.00, 0.81, 1.00, 0.20, 0.00]
+    blue =  [0.51, 1.00, 0.12, 0.00, 0.00]
+
+    stops = np.array(stops)
+    red = np.array(red)
+    green = np.array(green)
+    blue = np.array(blue)
+
+    grad_color_table = TColor.CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont)
+    
 # #Plot A Sources
     pad1.cd()
     grA = TGraph(A_A, x_A, y_A)
@@ -409,19 +440,10 @@ for ev in range(nev):
     grA.SetTitle("")
     grA.Draw("AP")
 
-    t = np.linspace(0,2*np.pi,100)
-    x_cA = np.zeros(100)
-    y_cA = np.zeros(100)
-    for i in range(0,100):
-        x_cA[i] = a1*np.cos(t[i])
-        y_cA[i] = b1*np.sin(t[i])
-        i+=1
-
-    grC1 = TGraph(100, x_cA, y_cA)
+    grC1 = TGraph(100, x_circle, y_circle)
     grC1.SetLineColor(1)
-    grC1.Draw("C")
-
-    c.Update()
+    grC1.Draw("C, SAME")   
+     
 #Plot B_WS
     
     pad2.cd()
@@ -440,22 +462,15 @@ for ev in range(nev):
     gr_B_WS.GetYaxis().SetTickLength(0.)
     gr_B_WS.GetZaxis().SetTickLength(0.)
     gr_B_WS.SetStats(0)
-    gStyle.SetPalette(55)
+
     gr_B_WS.Draw("CONT4")
+    gStyle.SetPalette(55)
 
-    t = np.linspace(0,2*np.pi,1000)
-    x_cB = np.zeros(1000)
-    y_cB = np.zeros(1000)
-    for i in range(0,1000):
-        x_cB[i] = a2*np.cos(t[i])
-        y_cB[i] = b2*np.sin(t[i])
-        i+=1
-
-    grC2 = TGraph(1000, x_cB, y_cB)
+    grC2 = TGraph(100, x_circle, y_circle)
     grC2.SetLineColor(1)
-    grC2.Draw("SAME")
-
+    grC2.Draw("C, SAME")   
     c.Update()
+
 #Plot A_WS
     
     pad3.cd()
@@ -474,21 +489,14 @@ for ev in range(nev):
     gr_A_WS.GetYaxis().SetTickLength(0.)
     gr_A_WS.SetStats(0)
     gStyle.SetPalette(55)
-    gr_B_WS.Draw("CONT4")
+    gr_A_WS.Draw("CONT4")
 
-    t = np.linspace(0,2*np.pi,1000)
-    x_cA = np.zeros(1000)
-    y_cA = np.zeros(1000)
-    for i in range(0,1000):
-        x_cA[i] = p1+a1*np.cos(t[i])
-        y_cA[i] = q1+b1*np.sin(t[i])
-        i+=1
-
-    grC3 = TGraph(1000, x_cA, y_cA)
+    grC3 = TGraph(100, x_circle, y_circle)
     grC3.SetLineColor(1)
-    grC3.Draw("SAME")
+    grC3.Draw("C, SAME")   
 
     c.Update()
+
 #Plot B Sources
     pad4.cd()
     grB = TGraph(A_B, x_B, y_B)
@@ -507,25 +515,16 @@ for ev in range(nev):
     grB.SetTitle("")
     grB.Draw("AP")
 
-    t = np.linspace(0,2*np.pi,1000)
-    x_cB = np.zeros(1000)
-    y_cB = np.zeros(1000)
-    for i in range(0,1000):
-        x_cB[i] = a2*np.cos(t[i])
-        y_cB[i] = b2*np.sin(t[i])
-        i+=1
-
-    grC4 = TGraph(1000, x_cB, y_cB)
+    grC4 = TGraph(100, x_circle, y_circle)
     grC4.SetLineColor(1)
-    grC4.Draw("SAME")
+    grC4.Draw("C, SAME")   
 
     c.Update()
-#Contour plot of energy density
 
-    #Canvas for overall plot
+#MAGMA Energy Density Plot
 
     pad5.cd()
-    gr_dens_rho = TH2D("rho_orig",";"";"";""[#font[12]{GeV fm^{-3}}]", size, -8, 8, size, -8, 8)
+    gr_dens_rho = TH2D("rho_orig",";"";"";""[#font[12]{GeV fm^{-3}}]", size, -14, 14, size, -14, 14)
 
     pad5.SetRightMargin(c.GetRightMargin()*5);
     for i in range(0,size):
@@ -537,44 +536,55 @@ for ev in range(nev):
 
     gr_dens_rho.GetZaxis().CenterTitle()
     gr_dens_rho.GetXaxis().SetLabelSize(0.0)
+    gr_dens_rho.GetXaxis().SetRangeUser(-8,8)
+    gr_dens_rho.GetYaxis().SetRangeUser(-8,8)
     gr_dens_rho.GetYaxis().SetLabelSize(0.0)
-    gr_dens_rho.GetZaxis().SetTitleOffset(1.3)
-    gr_dens_rho.GetZaxis().SetTitleSize(0.05)
+    gr_dens_rho.GetZaxis().SetTitleOffset(1)
+    gr_dens_rho.GetZaxis().SetTitleSize(0.1)
     gr_dens_rho.SetStats(0)
-    gStyle.SetPalette(55)
     gr_dens_rho.Draw("COLZ")
 
-    #Here are the circles showing the radius of the nuclei
+    gStyle.SetNumberContours(NCont);
+    grC5 = TGraph(100, x_circle, y_circle)
+    grC5.SetLineColor(1)
+    grC5.Draw("C, SAME")   
 
-    t = np.linspace(0,2*np.pi,1000)
-    x_cA = np.zeros(1000)
-    y_cA = np.zeros(1000)
-    
-    for i in range(0,1000):
-        x_cA[i] = p1+a1*np.cos(t[i])
-        y_cA[i] = q1+b1*np.sin(t[i])
-        i+=1
+    c.Update()
 
-    t = np.linspace(0,2*np.pi,1000)
-    x_cB = np.zeros(1000)
-    y_cB = np.zeros(1000)
-    
-    for i in range(0,1000):
-        x_cB[i] = p2+a2*np.cos(t[i])
-        y_cB[i] = q2+b2*np.sin(t[i])
-        i+=1
+#Modified MAGMA Energy Density Plot
 
-    grC1_rho = TGraph(1000, x_cA, y_cA)
-    grC1_rho.SetLineColor(1)
-    grC1_rho.Draw("SAME")
+    pad6.cd()
+    gr_dens_rho_mod = TH2D("rho_mod",";"";"";""[#font[12]{GeV fm^{-3}}]", size, -14, 14, size, -14, 14)
 
-    grC2_rho = TGraph(1000, x_cB, y_cB)
-    grC2_rho.SetLineColor(1)
-    grC2_rho.Draw("SAME")
+    pad6.SetRightMargin(c.GetRightMargin()*5);
+    for i in range(0,size):
+        for j in range(0, size):
+            if rho_mod[i,j] > 0:
+                gr_dens_rho_mod.SetBinContent(j + 1, size - i + 1, rho_mod[i, j])
+            else: 
+                gr_dens_rho_mod.SetBinContent(j + 1, size - i + 1, 1E-7)
 
+    gr_dens_rho_mod.GetZaxis().CenterTitle()
+    gr_dens_rho_mod.GetXaxis().SetLabelSize(0.0)
+    gr_dens_rho_mod.GetXaxis().SetRangeUser(-8,8)
+    gr_dens_rho_mod.GetYaxis().SetRangeUser(-8,8)
+    gr_dens_rho_mod.GetYaxis().SetLabelSize(0.0)
+    gr_dens_rho_mod.GetZaxis().SetTitleOffset(1)
+    gr_dens_rho_mod.GetZaxis().SetTitleSize(0.1)
+    gr_dens_rho_mod.SetStats(0)
+    gStyle.SetNumberContours(NCont);
+    gr_dens_rho_mod.Draw("COLZ")
+
+    grC6 = TGraph(100, x_circle, y_circle)
+    grC6.SetLineColor(1)
+    grC6.Draw("C, SAME")   
+
+    c.Update()
 
 ##############################################################
-    
+  
+#For plotting in python
+
     # t = np.linspace(0, 2*np.pi, 1000)
 
     # fig=plt.figure(1)
@@ -633,4 +643,3 @@ for ev in range(nev):
 #Save plots as pdfs
 
     c.SaveAs('c.pdf')
-    # c2.SaveAs('c2.pdf')
