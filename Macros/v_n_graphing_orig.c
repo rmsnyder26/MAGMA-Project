@@ -7,7 +7,7 @@ void v_n_graphing_orig (int version = 0) {
    gStyle->SetOptStat(0);
    gStyle->SetOptDate(111111);   
 
-   TCanvas *c = new TCanvas("c","c",10,10,1500,600);
+   TCanvas *c = new TCanvas("c","c",10,10,1400,600);
 
    c->Divide(2,1);
    // how to grab the TPad and then set attributes (logy, ticks)
@@ -42,19 +42,25 @@ void v_n_graphing_orig (int version = 0) {
    hist_2->GetYaxis()->SetRangeUser(0.5,1.1*hist_2->GetMaximum());
    hist_2->SetLineColor(kRed);
    hist_2->SetFillColorAlpha(kRed,0.3);
-   hist_2->SetXTitle("Energy Total (a.u.)");
+   hist_2->SetXTitle("#bf{Energy Total [arbitrary units]}");
    hist_2->GetXaxis()->SetNdivisions(5);
    hist_2->DrawCopy();
 
-   TLine *tcut[101];
-   for (int i=0;i<=100;i++) {
-     tcut[i] = new TLine(cuts[i],0.5,cuts[i],1.1*hist_2->GetMaximum());
-     tcut[i]->Draw("l,same");
+   TLine *tcut1[10];
+   TLine *tcut2[10];
+   for (int i=0;i<=8;i++) {
+     tcut1[i] = new TLine(cuts[10*i],0.5,cuts[10*i],1.1*hist_2->GetMaximum());
+     tcut1[i]->Draw("l,same");
+   }
+   for (int i=90;i<=99;i++) {
+     tcut2[i] = new TLine(cuts[i],0.5,cuts[i],1.1*hist_2->GetMaximum());
+     gStyle->SetLineStyle(7);
+     tcut2[i]->Draw("l,same");
    }
 
    c->cd(2);
    gPad->SetTickx(1);
-   gPad->SetTicky(2);
+   gPad->SetTicky(1);
 
    double kappa2 = 0.32;
    double kappa3 = 0.31;
@@ -66,13 +72,16 @@ void v_n_graphing_orig (int version = 0) {
    TH1D *htemplate = new TH1D("htemplate","htemplate",100,0.0,100.0);
    htemplate->SetXTitle("Centrality");
    htemplate->SetYTitle("v_{n} fluctuations");
-   htemplate->GetYaxis()->SetTitleOffset(1.4);
+   htemplate->GetYaxis()->SetTitleOffset(1.3);
    htemplate->GetYaxis()->SetRangeUser(0.0,0.15);
    htemplate->GetXaxis()->SetRangeUser(0.0,30.0);
-   htemplate->GetXaxis()->SetTitleSize(.035);
-   htemplate->GetYaxis()->SetTitleSize(.035);
-   htemplate->GetXaxis()->SetLabelSize(.035);
-   htemplate->GetYaxis()->SetLabelSize(.035);  
+   htemplate->GetXaxis()->SetTitleSize(.039);
+   htemplate->GetYaxis()->SetTitleSize(.039);
+   htemplate->GetXaxis()->SetLabelSize(.039);
+   htemplate->GetYaxis()->SetLabelSize(.039);  
+   htemplate->GetXaxis()->SetLabelFont(62);
+   htemplate->GetYaxis()->SetLabelFont(62); 
+   gStyle->SetLabelFont(62);
    htemplate->DrawCopy();
 
 
@@ -118,9 +127,9 @@ void v_n_graphing_orig (int version = 0) {
    v32->Draw("l,same");
 
    char footext[100];
-   if (version == 0) sprintf(footext,"MAGMA PbPb [A #times B_{WS}+A_{WS} #times B] %3.2fM evts",total/1.e6);
-   if (version == 1) sprintf(footext,"MAGMA PbPb [A #times B] %3.2fM evts",total/1.e6);
-   TLegend *tleg = new TLegend(0.15,0.67,0.60,0.9,footext,"brNDC");
+   if (version == 0) sprintf(footext,"MAGMA PbPb [A #times B_{WS} + A_{WS} #times B]",total/1.e6);
+   if (version == 1) sprintf(footext,"MAGMA PbPb [A #times B]",total/1.e6);
+   TLegend *tleg = new TLegend(0.125,0.65,0.575,0.9,footext,"brNDC");
    sprintf(footext,"v_{2} {2}; #Kappa_{2} = %3.2f",kappa2);
    tleg->AddEntry(v22,footext,"l");
    sprintf(footext,"v_{2} {4}; #Kappa_{2} = %3.2f",kappa2);
@@ -128,10 +137,11 @@ void v_n_graphing_orig (int version = 0) {
    sprintf(footext,"v_{3} {2}; #Kappa_{3} = %3.2f",kappa3);   
    tleg->AddEntry(v32,footext,"l");   
    tleg->AddEntry(atlasv22,"ATLAS data","p");
-   tleg->SetTextSize(.02);
+   tleg->SetTextSize(.031);
+   tleg->SetLineStyle(1);
    tleg->Draw("same");   
    
-   c->SetRightMargin(c->GetRightMargin()/2);
+   // c->SetRightMargin(c->GetRightMargin()/2);
    c -> SaveAs("v_n_fluctuations_MAGMA.pdf");
 } 
    // end of program
