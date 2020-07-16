@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d, RectBivariateSpline
 from scipy.integrate import quad,simps
 from mpl_toolkits.mplot3d import Axes3D
 import time
-from ROOT import TColor, TCanvas, TGraph, TGraph2D, gStyle, TStyle, TPad, TH2D, TLegend, TArrow, TLatex
+from ROOT import TColor, TCanvas, TGraph, TGraph2D, gStyle, TStyle, TPad, TH2D, TLegend, TArrow, TLatex, TExec
 import ROOT
 #import gROOT
 
@@ -407,22 +407,11 @@ for ev in range(nev):
         y_circle[i] = b1*np.sin(t[i])
         i+=1
 
-#For setting up a color table that can make hotspots brighter 
+#Call custom color table macro for energy density plots. Set A_WS and B_WS to kRainbow
 
-    NRGBs = 5
-    NCont = 255
-    stops = [0.00, 0.10, 0.40, 0.70, 1.00]
-    red =   [0.00, 0.00, 0.87, 1.00, 0.51]
-    green = [0.00, 0.81, 1.00, 0.20, 0.00]
-    blue =  [0.51, 1.00, 0.12, 0.00, 0.00]
+    ex1 = TExec("ex1","gStyle->SetPalette(55);")
+    ex2 = TExec("ex2",".x custom_color_table.c")
 
-    stops = np.array(stops)
-    red = np.array(red)
-    green = np.array(green)
-    blue = np.array(blue)
-
-    grad_color_table = TColor.CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont)
-    
 # #Plot A Sources
     pad1.cd()
     grA = TGraph(A_A, x_A, y_A)
@@ -464,7 +453,8 @@ for ev in range(nev):
     gr_B_WS.SetStats(0)
 
     gr_B_WS.Draw("CONT4")
-    gStyle.SetPalette(55)
+    ex1.Draw()
+    gr_B_WS.Draw("CONT4, SAME")
 
     grC2 = TGraph(100, x_circle, y_circle)
     grC2.SetLineColor(1)
@@ -489,7 +479,10 @@ for ev in range(nev):
     gr_A_WS.GetYaxis().SetTickLength(0.)
     gr_A_WS.SetStats(0)
     gStyle.SetPalette(55)
+
     gr_A_WS.Draw("CONT4")
+    ex1.Draw()
+    gr_A_WS.Draw("CONT4, SAME")
 
     grC3 = TGraph(100, x_circle, y_circle)
     grC3.SetLineColor(1)
@@ -542,9 +535,11 @@ for ev in range(nev):
     gr_dens_rho.GetZaxis().SetTitleOffset(1)
     gr_dens_rho.GetZaxis().SetTitleSize(0.1)
     gr_dens_rho.SetStats(0)
-    gr_dens_rho.Draw("COLZ")
 
-    gStyle.SetNumberContours(NCont);
+    gr_dens_rho.Draw("COLZ")
+    ex1.Draw()
+    gr_dens_rho.Draw("COLZ, SAME")
+
     grC5 = TGraph(100, x_circle, y_circle)
     grC5.SetLineColor(1)
     grC5.Draw("C, SAME")   
@@ -572,8 +567,10 @@ for ev in range(nev):
     gr_dens_rho_mod.GetZaxis().SetTitleOffset(1)
     gr_dens_rho_mod.GetZaxis().SetTitleSize(0.1)
     gr_dens_rho_mod.SetStats(0)
-    gStyle.SetNumberContours(NCont);
+
     gr_dens_rho_mod.Draw("COLZ")
+    ex2.Draw()
+    gr_dens_rho_mod.Draw("COLZ, SAME")
 
     grC6 = TGraph(100, x_circle, y_circle)
     grC6.SetLineColor(1)
