@@ -1,1 +1,1 @@
-# Monte Carlo Glauber simulation in Python
+# Monte Carlo Glauber simulation
